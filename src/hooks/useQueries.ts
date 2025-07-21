@@ -1,11 +1,5 @@
 import { useQuery, useQueries as useTanStackQueries } from '@tanstack/react-query';
-import { 
-  getBitcoinDominance,
-  getKimchiPremium,
-  getDollarIndex,
-  getCryptoPrices,
-  getChartData
-} from '@/lib/api';
+import { getBitcoinDominance, getKimchiPremium, getDollarIndex, getCryptoPrices, getChartData } from '@/lib/api';
 import { BitcoinDominance, KimchiPremium, DollarIndex, CryptoPriceData, ChartDataPoint } from '@/types/crypto';
 
 // Query Keys
@@ -22,8 +16,10 @@ export const useBitcoinDominance = () => {
   return useQuery<BitcoinDominance>({
     queryKey: queryKeys.bitcoinDominance,
     queryFn: getBitcoinDominance,
-    staleTime: 1000 * 3, // 3초
-    refetchInterval: 1000 * 5, // 5초마다 자동 갱신
+    staleTime: 1000 * 30, // 30초
+    refetchInterval: 1000 * 60, // 1분마다 자동 갱신 (CoinGecko만 사용)
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
@@ -31,8 +27,10 @@ export const useKimchiPremium = () => {
   return useQuery<KimchiPremium>({
     queryKey: queryKeys.kimchiPremium,
     queryFn: getKimchiPremium,
-    staleTime: 1000 * 3, // 3초
-    refetchInterval: 1000 * 5, // 5초마다 자동 갱신
+    staleTime: 1000 * 15, // 15초
+    refetchInterval: 1000 * 30, // 30초마다 자동 갱신 (Upbit + Binance)
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
@@ -40,8 +38,10 @@ export const useDollarIndex = () => {
   return useQuery<DollarIndex>({
     queryKey: queryKeys.dollarIndex,
     queryFn: getDollarIndex,
-    staleTime: 1000 * 3, // 3초
-    refetchInterval: 1000 * 5, // 5초마다 자동 갱신
+    staleTime: 1000 * 60 * 2, // 2분
+    refetchInterval: 1000 * 60 * 3, // 3분마다 자동 갱신 (Mock 데이터)
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
@@ -49,8 +49,10 @@ export const useCryptoPrices = () => {
   return useQuery<CryptoPriceData[]>({
     queryKey: queryKeys.cryptoPrices,
     queryFn: getCryptoPrices,
-    staleTime: 1000 * 3, // 3초
-    refetchInterval: 1000 * 5, // 5초마다 자동 갱신
+    staleTime: 1000 * 10, // 10초
+    refetchInterval: 1000 * 15, // 15초마다 자동 갱신 (Binance 우선)
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 
@@ -70,36 +72,39 @@ export const useDashboardData = () => {
       {
         queryKey: queryKeys.bitcoinDominance,
         queryFn: getBitcoinDominance,
-        staleTime: 1000 * 3,
-        refetchInterval: 1000 * 5,
+        staleTime: 1000 * 30,
+        refetchInterval: 1000 * 60,
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
       {
         queryKey: queryKeys.kimchiPremium,
         queryFn: getKimchiPremium,
-        staleTime: 1000 * 3,
-        refetchInterval: 1000 * 5,
+        staleTime: 1000 * 15,
+        refetchInterval: 1000 * 30,
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
       {
         queryKey: queryKeys.dollarIndex,
         queryFn: getDollarIndex,
-        staleTime: 1000 * 3,
-        refetchInterval: 1000 * 5,
+        staleTime: 1000 * 60 * 2,
+        refetchInterval: 1000 * 60 * 3,
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
       {
         queryKey: queryKeys.cryptoPrices,
         queryFn: getCryptoPrices,
-        staleTime: 1000 * 3,
-        refetchInterval: 1000 * 5,
+        staleTime: 1000 * 10,
+        refetchInterval: 1000 * 15,
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
-    ]
+    ],
   });
 
-  const [
-    bitcoinDominanceQuery,
-    kimchiPremiumQuery,
-    dollarIndexQuery,
-    cryptoPricesQuery
-  ] = queries;
+  const [bitcoinDominanceQuery, kimchiPremiumQuery, dollarIndexQuery, cryptoPricesQuery] = queries;
 
   // 차트 데이터를 위한 추가 쿼리들
   const chartQueries = useTanStackQueries({
@@ -107,65 +112,66 @@ export const useDashboardData = () => {
       {
         queryKey: queryKeys.chartData('btc-dominance', 7),
         queryFn: () => getChartData('btc-dominance', 7),
-        staleTime: 1000 * 60 * 5,
-        refetchInterval: 1000 * 60 * 10,
+        staleTime: 1000 * 60 * 5, // 5분
+        refetchInterval: 1000 * 60 * 10, // 10분마다 자동 갱신
+        retry: 2,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
       {
         queryKey: queryKeys.chartData('kimchi-premium', 7),
         queryFn: () => getChartData('kimchi-premium', 7),
         staleTime: 1000 * 60 * 5,
         refetchInterval: 1000 * 60 * 10,
+        retry: 2,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
       {
         queryKey: queryKeys.chartData('dollar-index', 7),
         queryFn: () => getChartData('dollar-index', 7),
         staleTime: 1000 * 60 * 5,
         refetchInterval: 1000 * 60 * 10,
+        retry: 2,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
-    ]
+    ],
   });
 
   const [btcDominanceChart, kimchiPremiumChart, dollarIndexChart] = chartQueries;
 
   // 모든 쿼리의 로딩 상태
-  const isLoading = queries.some(query => query.isLoading) || chartQueries.some(query => query.isLoading);
-  
+  const isLoading = queries.some((query) => query.isLoading) || chartQueries.some((query) => query.isLoading);
+
   // 모든 쿼리의 에러 상태
-  const hasError = queries.some(query => query.isError) || chartQueries.some(query => query.isError);
-  
+  const hasError = queries.some((query) => query.isError) || chartQueries.some((query) => query.isError);
+
   // 에러 메시지 수집
   const errors = [
-    ...queries.filter(query => query.isError).map(query => query.error?.message),
-    ...chartQueries.filter(query => query.isError).map(query => query.error?.message)
+    ...queries.filter((query) => query.isError).map((query) => query.error?.message),
+    ...chartQueries.filter((query) => query.isError).map((query) => query.error?.message),
   ].filter(Boolean);
 
   // 개별 refetch 함수들
   const refetchAll = async () => {
-    await Promise.all([
-      ...queries.map(query => query.refetch()),
-      ...chartQueries.map(query => query.refetch())
-    ]);
+    await Promise.all([...queries.map((query) => query.refetch()), ...chartQueries.map((query) => query.refetch())]);
   };
 
   // 마지막 업데이트 시간 (가장 최근 성공한 쿼리의 시간)
   const lastUpdated = Math.max(
-    ...queries.filter(query => query.dataUpdatedAt).map(query => query.dataUpdatedAt),
-    ...chartQueries.filter(query => query.dataUpdatedAt).map(query => query.dataUpdatedAt)
+    ...queries.filter((query) => query.dataUpdatedAt).map((query) => query.dataUpdatedAt),
+    ...chartQueries.filter((query) => query.dataUpdatedAt).map((query) => query.dataUpdatedAt)
   );
 
   return {
     // Dashboard data
-    dashboardData: (
-      bitcoinDominanceQuery.data && 
-      kimchiPremiumQuery.data && 
-      dollarIndexQuery.data && 
-      cryptoPricesQuery.data
-    ) ? {
-      bitcoinDominance: bitcoinDominanceQuery.data,
-      kimchiPremium: kimchiPremiumQuery.data,
-      dollarIndex: dollarIndexQuery.data,
-      cryptoPrices: cryptoPricesQuery.data,
-    } : undefined,
+    dashboardData:
+      bitcoinDominanceQuery.data && kimchiPremiumQuery.data && dollarIndexQuery.data && cryptoPricesQuery.data
+        ? {
+            bitcoinDominance: bitcoinDominanceQuery.data,
+            kimchiPremium: kimchiPremiumQuery.data,
+            dollarIndex: dollarIndexQuery.data,
+            cryptoPrices: cryptoPricesQuery.data,
+          }
+        : undefined,
 
     // Chart data
     chartData: {
@@ -178,7 +184,7 @@ export const useDashboardData = () => {
     loading: isLoading,
     error: hasError ? errors.join(', ') : null,
     lastUpdated: lastUpdated ? new Date(lastUpdated) : null,
-    
+
     // Actions
     refetch: refetchAll,
 
@@ -192,7 +198,7 @@ export const useDashboardData = () => {
         btcDominance: btcDominanceChart,
         kimchiPremium: kimchiPremiumChart,
         dollarIndex: dollarIndexChart,
-      }
-    }
+      },
+    },
   };
 };
