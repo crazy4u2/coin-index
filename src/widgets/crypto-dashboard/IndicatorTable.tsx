@@ -2,7 +2,7 @@
 
 import React, { memo, useMemo } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { CryptoIndicator, CryptoPriceData } from '@/types/crypto';
+import { CryptoIndicator, CryptoPriceData } from '@/shared/types/crypto';
 
 interface IndicatorTableProps {
   indicators: CryptoIndicator[];

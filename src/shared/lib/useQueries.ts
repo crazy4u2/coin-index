@@ -1,6 +1,6 @@
 import { useQuery, useQueries as useTanStackQueries } from '@tanstack/react-query';
-import { getBitcoinDominance, getKimchiPremium, getDollarIndex, getCryptoPrices, getChartData } from '@/lib/api';
-import { BitcoinDominance, KimchiPremium, DollarIndex, CryptoPriceData, ChartDataPoint } from '@/types/crypto';
+import { getBitcoinDominance, getKimchiPremium, getDollarIndex, getCryptoPrices, getChartData } from '@/entities/crypto/api';
+import { BitcoinDominance, KimchiPremium, DollarIndex, CryptoPriceData, ChartDataPoint } from '@/shared/types/crypto';
 
 // Query Keys
 export const queryKeys = {

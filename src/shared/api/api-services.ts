@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { coinGeckoClient, upbitClient, binanceClient, withErrorHandling, withRetry } from './api-client';
-import { API_ENDPOINTS } from './api-client';
+import { coinGeckoClient, upbitClient, binanceClient, withErrorHandling, withRetry, API_ENDPOINTS } from './api-client';
 
 // API 응답 타입 정의
 interface CoinGeckoGlobalResponse {
@@ -78,10 +77,10 @@ export const fetchBitcoinDominance = async (): Promise<number | null> => {
 };
 
 // 비트코인 히스토리컬 도미넌스 데이터 - 실제 API에서만 가져오기
-export const fetchBitcoinDominanceHistory = async (_days: number = 365): Promise<{ timestamp: string; value: number }[] | null> => {
+export const fetchBitcoinDominanceHistory = async (days: number = 365): Promise<{ timestamp: string; value: number }[] | null> => {
   // CoinGecko 무료 API에서는 히스토리컬 도미넌스 데이터를 직접 제공하지 않음
   // CoinMarketCap API 키가 있으면 실제 히스토리컬 도미넌스 데이터 사용 가능
-  console.warn('Bitcoin dominance historical data requires CoinMarketCap Pro API or similar service');
+  console.warn(`Bitcoin dominance historical data requires CoinMarketCap Pro API or similar service (requested ${days} days)`);
   return null;
 };
 
@@ -136,10 +135,10 @@ export const calculateKimchiPremium = async (): Promise<{
 };
 
 // 김치 프리미엄 히스토리컬 데이터 (실제 구현을 위해서는 업비트와 바이낸스의 히스토리컬 API 필요)
-export const fetchKimchiPremiumHistory = async (_days: number = 365): Promise<{ timestamp: string; value: number }[] | null> => {
+export const fetchKimchiPremiumHistory = async (days: number = 365): Promise<{ timestamp: string; value: number }[] | null> => {
   // 김치 프리미엄의 정확한 히스토리컬 데이터는 업비트와 바이낸스의 히스토리컬 API가 필요
   // 현재는 제한된 데이터만 제공되므로 최근 30일 정도만 실제 데이터 사용 가능
-  console.warn('Kimchi Premium historical data requires Upbit and Binance historical APIs');
+  console.warn(`Kimchi Premium historical data requires Upbit and Binance historical APIs (requested ${days} days)`);
   return null;
 };
 
