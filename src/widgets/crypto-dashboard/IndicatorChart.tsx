@@ -2,7 +2,7 @@
 
 import React, { memo, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChartDataPoint } from '@/types/crypto';
+import { ChartDataPoint } from '@/shared/types/crypto';
 
 interface IndicatorChartProps {
   title: string;

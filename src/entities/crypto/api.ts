@@ -1,4 +1,4 @@
-import { DashboardData, ChartDataPoint, BitcoinDominance, KimchiPremium, DollarIndex, CryptoPriceData } from '@/types/crypto';
+import { DashboardData, ChartDataPoint, BitcoinDominance, KimchiPremium, DollarIndex, CryptoPriceData } from '@/shared/types/crypto';
 import { 
   fetchBitcoinDominance, 
   fetchBitcoinDominanceHistory,
@@ -7,7 +7,7 @@ import {
   fetchCurrentDollarIndex,
   fetchDollarIndexHistory,
   fetchCryptoMarkets
-} from './api-services';
+} from '@/shared/api/api-services';
 import { MockDataGenerator } from './mock-data';
 
 // 이전 값들을 저장하기 위한 간단한 캐시 (함수형)

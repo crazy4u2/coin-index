@@ -1,4 +1,4 @@
-import { BitcoinDominance, KimchiPremium, DollarIndex, CryptoPriceData } from '@/types/crypto';
+import { BitcoinDominance, KimchiPremium, DollarIndex, CryptoPriceData } from '@/shared/types/crypto';
 
 // 비트코인 도미넌스 Mock 데이터 생성
 export const getBitcoinDominance = (): BitcoinDominance => {
