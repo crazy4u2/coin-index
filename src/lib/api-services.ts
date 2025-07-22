@@ -19,6 +19,30 @@ interface BinanceTickerResponse {
   price: string;
 }
 
+interface Binance24hrTickerResponse {
+  symbol: string;
+  priceChange: string;
+  priceChangePercent: string;
+  weightedAvgPrice: string;
+  prevClosePrice: string;
+  lastPrice: string;
+  lastQty: string;
+  bidPrice: string;
+  bidQty: string;
+  askPrice: string;
+  askQty: string;
+  openPrice: string;
+  highPrice: string;
+  lowPrice: string;
+  volume: string;
+  quoteVolume: string;
+  openTime: number;
+  closeTime: number;
+  firstId: number;
+  lastId: number;
+  count: number;
+}
+
 interface CoinGeckoMarketResponse {
   symbol: string;
   current_price: number;
@@ -170,8 +194,53 @@ export const fetchDollarIndexHistory = async (days: number = 365): Promise<{ tim
   }
 };
 
-// 암호화폐 시장 데이터 조회
-export const fetchCryptoMarkets = async (): Promise<CoinGeckoMarketResponse[] | null> => {
+// Binance 24시간 티커 데이터 조회
+export const fetchBinanceCryptoMarkets = async (): Promise<CoinGeckoMarketResponse[] | null> => {
+  // 주요 암호화폐 심볼들 (USDT 페어)
+  const symbols = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'ADAUSDT', 'SOLUSDT'];
+  
+  try {
+    const requests = symbols.map(symbol => 
+      withRetry(
+        () => withErrorHandling(
+          () => binanceClient.get<Binance24hrTickerResponse>(`${API_ENDPOINTS.BINANCE.TICKER_24HR}?symbol=${symbol}`),
+          `Failed to fetch Binance ticker for ${symbol}`
+        )
+      )
+    );
+
+    const responses = await Promise.all(requests);
+    
+    // 실패한 요청 필터링
+    const validResponses = responses.filter((response): response is Binance24hrTickerResponse => response !== null);
+    
+    if (validResponses.length === 0) return null;
+
+    // Binance 데이터를 CoinGecko 형식으로 변환
+    const cryptoSymbolMap: { [key: string]: string } = {
+      'BTCUSDT': 'btc',
+      'ETHUSDT': 'eth', 
+      'XRPUSDT': 'xrp',
+      'ADAUSDT': 'ada',
+      'SOLUSDT': 'sol'
+    };
+
+    return validResponses.map(ticker => ({
+      symbol: cryptoSymbolMap[ticker.symbol] || ticker.symbol.replace('USDT', '').toLowerCase(),
+      current_price: parseFloat(ticker.lastPrice),
+      price_change_24h: parseFloat(ticker.priceChange),
+      price_change_percentage_24h: parseFloat(ticker.priceChangePercent),
+      total_volume: parseFloat(ticker.volume),
+      market_cap: 0 // Binance에서 제공하지 않음, 0으로 설정
+    }));
+  } catch (error) {
+    console.error('Failed to fetch Binance crypto markets:', error);
+    return null;
+  }
+};
+
+// 기존 CoinGecko 암호화폐 시장 데이터 조회 (백업용)
+export const fetchCryptoMarketsLegacy = async (): Promise<CoinGeckoMarketResponse[] | null> => {
   const params = new URLSearchParams({
     vs_currency: 'usd',
     ids: 'bitcoin,ethereum,ripple,cardano,solana',
@@ -190,6 +259,21 @@ export const fetchCryptoMarkets = async (): Promise<CoinGeckoMarketResponse[] | 
   );
 
   return data;
+};
+
+// 하이브리드 암호화폐 시장 데이터 조회 (Binance 우선, CoinGecko 백업)
+export const fetchCryptoMarkets = async (): Promise<CoinGeckoMarketResponse[] | null> => {
+  // 먼저 Binance API 시도
+  const binanceData = await fetchBinanceCryptoMarkets();
+  
+  if (binanceData && binanceData.length > 0) {
+    console.log('Successfully fetched crypto data from Binance API');
+    return binanceData;
+  }
+  
+  // Binance 실패 시 CoinGecko 백업
+  console.warn('Binance API failed, falling back to CoinGecko API');
+  return await fetchCryptoMarketsLegacy();
 };
 
 // APIService 객체로 래핑 (기존 코드와의 호환성)
