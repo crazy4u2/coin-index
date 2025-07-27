@@ -9,6 +9,7 @@ import {
   fetchCryptoMarkets
 } from '@/shared/api/api-services';
 import { MockDataGenerator } from './mock-data';
+import { getLatestData, isDataFresh } from '@/entities/crypto-history/api';
 
 // 이전 값들을 저장하기 위한 간단한 캐시 (함수형)
 const dataCache = new Map<string, number>();
@@ -25,8 +26,38 @@ const cacheUtils = {
   }
 };
 
-// 비트코인 도미넌스 가져오기
+// 비트코인 도미넌스 가져오기 (DB 우선, 실시간 API 백업)
 export const getBitcoinDominance = async (): Promise<BitcoinDominance> => {
+  try {
+    // 1. DB에서 최신 데이터 확인 (30분 이내)
+    const latestData = await getLatestData();
+    
+    if (latestData && latestData.btc_dominance !== null && isDataFresh(latestData.created_at, 30)) {
+      console.log('📊 Using DB data for Bitcoin dominance');
+      
+      // 이전 값 계산 (캐시에서 또는 이전 DB 데이터에서)
+      const previousValue = cacheUtils.get('btc-dominance') || latestData.btc_dominance * 0.99;
+      const change = latestData.btc_dominance - previousValue;
+      const changePercent = previousValue !== 0 ? (change / previousValue) * 100 : 0;
+      
+      cacheUtils.set('btc-dominance', latestData.btc_dominance);
+      
+      return {
+        name: 'Bitcoin Dominance',
+        value: parseFloat(latestData.btc_dominance.toFixed(2)),
+        previousValue: parseFloat(previousValue.toFixed(2)),
+        change: parseFloat(change.toFixed(2)),
+        changePercent: parseFloat(changePercent.toFixed(2)),
+        unit: '%',
+        lastUpdated: new Date(latestData.created_at)
+      };
+    }
+  } catch (error) {
+    console.warn('DB data fetch failed, falling back to real-time API:', error);
+  }
+
+  // 2. DB 데이터가 없거나 오래됐으면 실시간 API 사용
+  console.log('🔄 Using real-time API for Bitcoin dominance');
   const dominance = await fetchBitcoinDominance();
   
   if (dominance !== null) {
@@ -47,13 +78,44 @@ export const getBitcoinDominance = async (): Promise<BitcoinDominance> => {
     };
   }
 
-  // API 실패 시 Mock 데이터 반환
+  // 3. 모든 방법이 실패하면 Mock 데이터 반환
   console.warn('Using mock data for Bitcoin dominance');
   return MockDataGenerator.getBitcoinDominance();
 };
 
-// 김치 프리미엄 계산
+// 김치 프리미엄 계산 (DB 우선, 실시간 API 백업)
 export const getKimchiPremium = async (): Promise<KimchiPremium> => {
+  try {
+    // 1. DB에서 최신 데이터 확인 (30분 이내)
+    const latestData = await getLatestData();
+    
+    if (latestData && latestData.kimchi_premium !== null && isDataFresh(latestData.created_at, 30)) {
+      console.log('📊 Using DB data for Kimchi premium');
+      
+      const previousPremium = cacheUtils.get('kimchi-premium') || latestData.kimchi_premium * 0.95;
+      const change = latestData.kimchi_premium - previousPremium;
+      const changePercent = previousPremium !== 0 ? (change / Math.abs(previousPremium)) * 100 : 0;
+      
+      cacheUtils.set('kimchi-premium', latestData.kimchi_premium);
+      
+      return {
+        name: 'Kimchi Premium',
+        value: parseFloat(latestData.kimchi_premium.toFixed(2)),
+        previousValue: parseFloat(previousPremium.toFixed(2)),
+        change: parseFloat(change.toFixed(2)),
+        changePercent: parseFloat(changePercent.toFixed(2)),
+        unit: '%',
+        upbitPrice: 0, // DB에는 계산된 프리미엄만 저장되므로 0으로 설정
+        binancePrice: 0,
+        lastUpdated: new Date(latestData.created_at)
+      };
+    }
+  } catch (error) {
+    console.warn('DB data fetch failed, falling back to real-time API:', error);
+  }
+
+  // 2. DB 데이터가 없거나 오래됐으면 실시간 API 사용
+  console.log('🔄 Using real-time API for Kimchi premium');
   const kimchiData = await calculateKimchiPremium();
   
   if (kimchiData) {
@@ -77,13 +139,42 @@ export const getKimchiPremium = async (): Promise<KimchiPremium> => {
     };
   }
 
-  // API 실패 시 Mock 데이터 반환
+  // 3. 모든 방법이 실패하면 Mock 데이터 반환
   console.warn('Using mock data for Kimchi premium');
   return MockDataGenerator.getKimchiPremium();
 };
 
-// 달러 인덱스 (실제 데이터 사용)
+// 달러 인덱스 (DB 우선, 실시간 API 백업)
 export const getDollarIndex = async (): Promise<DollarIndex> => {
+  try {
+    // 1. DB에서 최신 데이터 확인 (30분 이내)
+    const latestData = await getLatestData();
+    
+    if (latestData && latestData.dollar_index !== null && isDataFresh(latestData.created_at, 30)) {
+      console.log('📊 Using DB data for Dollar Index');
+      
+      const previousValue = cacheUtils.get('dollar-index') || latestData.dollar_index * 0.998;
+      const change = latestData.dollar_index - previousValue;
+      const changePercent = previousValue !== 0 ? (change / previousValue) * 100 : 0;
+      
+      cacheUtils.set('dollar-index', latestData.dollar_index);
+      
+      return {
+        name: 'Dollar Index',
+        value: parseFloat(latestData.dollar_index.toFixed(2)),
+        previousValue: parseFloat(previousValue.toFixed(2)),
+        change: parseFloat(change.toFixed(2)),
+        changePercent: parseFloat(changePercent.toFixed(2)),
+        unit: 'DXY',
+        lastUpdated: new Date(latestData.created_at)
+      };
+    }
+  } catch (error) {
+    console.warn('DB data fetch failed, falling back to real-time API:', error);
+  }
+
+  // 2. DB 데이터가 없거나 오래됐으면 실시간 API 사용
+  console.log('🔄 Using real-time API for Dollar Index');
   const currentDXY = await fetchCurrentDollarIndex();
   
   if (currentDXY !== null) {
@@ -104,8 +195,8 @@ export const getDollarIndex = async (): Promise<DollarIndex> => {
     };
   }
 
-  // API 실패 시 Mock 데이터 반환
-  console.warn('Using mock data for Dollar Index - Yahoo Finance API failed');
+  // 3. 모든 방법이 실패하면 Mock 데이터 반환
+  console.warn('Using mock data for Dollar Index - all APIs failed');
   return MockDataGenerator.getDollarIndex();
 };
 
