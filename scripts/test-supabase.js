@@ -5,9 +5,19 @@ import dotenv from 'dotenv';
 // 환경변수 로드
 dotenv.config({ path: '.env.local' });
 
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.SUPABASE_URL) {
+  console.error('❌ SUPABASE_URL environment variable is required');
+  process.exit(1);
+}
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_KEY) {
+  console.error('❌ SUPABASE service role key environment variable is required');
+  process.exit(1);
+}
+
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY
 );
 
 async function testConnection() {
