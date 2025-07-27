@@ -11,17 +11,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY
 );
 
-// 기존 API 함수들 임포트 (절대 경로로 수정 필요)
-async function fetchBitcoinDominance() {
-  try {
-    const response = await fetch('https://api.coingecko.com/api/v3/global');
-    const data = await response.json();
-    return data.data.market_cap_percentage.btc;
-  } catch (error) {
-    console.error('Bitcoin dominance fetch failed:', error);
-    return null;
-  }
-}
+import { fetchBitcoinDominance } from '../src/shared/api/api-services.js';
 
 async function fetchUpbitBTCPrice() {
   try {
