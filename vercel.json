@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/kimchi-premium/route.ts": {
+      "regions": ["sin1"]
+    },
+    "src/app/api/debug-apis/route.ts": {
+      "regions": ["sin1"]
+    }
+  }
+}
