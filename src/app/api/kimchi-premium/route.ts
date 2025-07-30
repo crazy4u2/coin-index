@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// export const runtime = 'edge';
-
 // 업비트 BTC 가격 조회
 async function fetchUpbitBTCPrice(): Promise<number | null> {
   try {
@@ -71,8 +69,6 @@ export async function GET() {
             binancePrice: !!binancePrice,
             usdKrwRate: !!usdKrwRate,
           },
-          // runtime: 'edge',
-          // region: 'sin1'
         },
         { status: 503 }
       );
@@ -90,8 +86,6 @@ export async function GET() {
         binancePrice: binancePriceKRW,
         usdKrwRate,
         timestamp: new Date().toISOString(),
-        // runtime: 'edge',
-        // region: 'sin1'
       },
     });
   } catch (error) {
