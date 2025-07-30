@@ -55,7 +55,7 @@ export const getLatestData = async (): Promise<HistoricalDataPoint | null> => {
       return null;
     }
 
-    return data?.[0] || null;
+    return (data?.[0] as unknown as HistoricalDataPoint) || null;
   } catch (error) {
     console.error('Error fetching latest data:', error);
     return null;
@@ -84,8 +84,8 @@ export const getHistoricalData = async (
     }
 
     return data.map(item => ({
-      timestamp: item.created_at,
-      value: (item as any)[indicator]
+      timestamp: item.created_at as string,
+      value: item[indicator as keyof typeof item] as number
     }));
   } catch (error) {
     console.error(`Error fetching historical ${indicator} data:`, error);
@@ -120,7 +120,7 @@ export const getAllHistoricalData = async (
       return [];
     }
 
-    return data || [];
+    return (data as unknown as HistoricalDataPoint[]) || [];
   } catch (error) {
     console.error('Error fetching all historical data:', error);
     return [];
@@ -146,7 +146,7 @@ export const getDataStats = async (
       return null;
     }
 
-    const values = data.map(item => (item as any)[indicator]).filter(v => v !== null);
+    const values = data.map(item => item[indicator as keyof typeof item] as number).filter(v => v !== null);
     
     if (values.length === 0) return null;
 
