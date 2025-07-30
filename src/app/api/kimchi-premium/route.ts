@@ -35,10 +35,12 @@ async function fetchUSDKRWRate(): Promise<number | null> {
     if (!response.ok) throw new Error(`Exchange rate API error: ${response.status}`);
     
     const data = await response.json();
-    return data.rates?.KRW || 1330; // 폴백 환율
+-    return data.rates?.KRW || 1330; // 폴백 환율
++    return data.rates?.KRW || null; // Fail if exchange rate unavailable
   } catch (error) {
     console.error('USD/KRW rate fetch failed:', error);
-    return 1330; // 대략적인 현재 환율
+-    return 1330; // 대략적인 현재 환율
++    return null; // Don't use potentially outdated rates
   }
 }
 
