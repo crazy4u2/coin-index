@@ -121,8 +121,34 @@ export const fetchBinanceBTCPrice = async (): Promise<number | null> => {
   return data ? parseFloat(data.price) : null;
 };
 
-// 김치 프리미엄 계산 (실제 환율 사용)
+// 김치 프리미엄 계산 (서버사이드 API Route 사용하여 CORS 해결)
 export const calculateKimchiPremium = async (): Promise<{
+  premium: number;
+  upbitPrice: number;
+  binancePrice: number;
+} | null> => {
+  try {
+    // Next.js API Route를 통해 서버 사이드에서 김치 프리미엄 계산
+    const response = await axios.get('/api/kimchi-premium', { timeout: 15000 });
+    
+    if (response.data?.success && response.data?.data) {
+      const { premium, upbitPrice, binancePrice } = response.data.data;
+      return {
+        premium,
+        upbitPrice,
+        binancePrice
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch Kimchi Premium via internal API:', error);
+    return null;
+  }
+};
+
+// 레거시: 직접 외부 API 호출 (CORS 문제로 사용 안함)
+export const calculateKimchiPremiumLegacy = async (): Promise<{
   premium: number;
   upbitPrice: number;
   binancePrice: number;
