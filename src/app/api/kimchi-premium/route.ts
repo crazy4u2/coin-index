@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
 // 업비트 BTC 가격 조회
 async function fetchUpbitBTCPrice(): Promise<number | null> {
   try {
@@ -43,26 +45,68 @@ async function fetchUSDKRWRate(): Promise<number | null> {
 }
 
 export async function GET() {
-  console.log('Kimchi Premium API called');
+  console.log('Kimchi Premium API called with Edge Runtime and Singapore region');
   
-  // 단순 테스트: 하드코딩된 데이터 반환
   try {
+    // 모든 데이터를 병렬로 가져오기
+    const results = await Promise.allSettled([
+      fetchUpbitBTCPrice(),
+      fetchBinanceBTCPrice(),
+      fetchUSDKRWRate(),
+    ]);
+
+    const upbitPrice = results[0].status === 'fulfilled' ? results[0].value : null;
+    const binancePrice = results[1].status === 'fulfilled' ? results[1].value : null;
+    const usdKrwRate = results[2].status === 'fulfilled' ? results[2].value : null;
+
+    console.log('API fetch results:', {
+      upbitPrice: upbitPrice || 'FAILED',
+      binancePrice: binancePrice || 'FAILED', 
+      usdKrwRate: usdKrwRate || 'FAILED'
+    });
+
+    if (!upbitPrice || !binancePrice || !usdKrwRate) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to fetch required data',
+          details: {
+            upbitPrice: !!upbitPrice,
+            binancePrice: !!binancePrice,
+            usdKrwRate: !!usdKrwRate,
+          },
+          runtime: 'edge',
+          region: 'sin1'
+        },
+        { status: 503 }
+      );
+    }
+
+    // 김치 프리미엄 계산
+    const binancePriceKRW = binancePrice * usdKrwRate;
+    const premium = ((upbitPrice - binancePriceKRW) / binancePriceKRW) * 100;
+
     return NextResponse.json({
       success: true,
       data: {
-        premium: -0.5,
-        upbitPrice: 163000000,
-        binancePrice: 163500000,
-        usdKrwRate: 1390,
+        premium: parseFloat(premium.toFixed(2)),
+        upbitPrice,
+        binancePrice: binancePriceKRW,
+        usdKrwRate,
         timestamp: new Date().toISOString(),
-        note: 'Hardcoded test data'
+        runtime: 'edge',
+        region: 'sin1'
       },
     });
   } catch (error) {
-    console.error('Critical error:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Test failed'
-    }, { status: 500 });
+    console.error('Kimchi Premium API error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }
