@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 // 업비트 BTC 가격 조회
 async function fetchUpbitBTCPrice(): Promise<number | null> {
@@ -46,14 +46,10 @@ async function fetchUSDKRWRate(): Promise<number | null> {
 
 export async function GET() {
   console.log('Kimchi Premium API called with Edge Runtime and Singapore region');
-  
+
   try {
     // 모든 데이터를 병렬로 가져오기
-    const results = await Promise.allSettled([
-      fetchUpbitBTCPrice(),
-      fetchBinanceBTCPrice(),
-      fetchUSDKRWRate(),
-    ]);
+    const results = await Promise.allSettled([fetchUpbitBTCPrice(), fetchBinanceBTCPrice(), fetchUSDKRWRate()]);
 
     const upbitPrice = results[0].status === 'fulfilled' ? results[0].value : null;
     const binancePrice = results[1].status === 'fulfilled' ? results[1].value : null;
@@ -61,8 +57,8 @@ export async function GET() {
 
     console.log('API fetch results:', {
       upbitPrice: upbitPrice || 'FAILED',
-      binancePrice: binancePrice || 'FAILED', 
-      usdKrwRate: usdKrwRate || 'FAILED'
+      binancePrice: binancePrice || 'FAILED',
+      usdKrwRate: usdKrwRate || 'FAILED',
     });
 
     if (!upbitPrice || !binancePrice || !usdKrwRate) {
@@ -75,8 +71,8 @@ export async function GET() {
             binancePrice: !!binancePrice,
             usdKrwRate: !!usdKrwRate,
           },
-          runtime: 'edge',
-          region: 'sin1'
+          // runtime: 'edge',
+          // region: 'sin1'
         },
         { status: 503 }
       );
@@ -94,8 +90,8 @@ export async function GET() {
         binancePrice: binancePriceKRW,
         usdKrwRate,
         timestamp: new Date().toISOString(),
-        runtime: 'edge',
-        region: 'sin1'
+        // runtime: 'edge',
+        // region: 'sin1'
       },
     });
   } catch (error) {
@@ -104,7 +100,7 @@ export async function GET() {
       {
         success: false,
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
