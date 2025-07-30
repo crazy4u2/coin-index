@@ -43,13 +43,21 @@ async function fetchUSDKRWRate(): Promise<number | null> {
 }
 
 export async function GET() {
+  console.log('Kimchi Premium API called with Edge Runtime and Singapore region');
+
   try {
     // 모든 데이터를 병렬로 가져오기
-    const [upbitPrice, binancePrice, usdKrwRate] = await Promise.all([
-      fetchUpbitBTCPrice(),
-      fetchBinanceBTCPrice(),
-      fetchUSDKRWRate(),
-    ]);
+    const results = await Promise.allSettled([fetchUpbitBTCPrice(), fetchBinanceBTCPrice(), fetchUSDKRWRate()]);
+
+    const upbitPrice = results[0].status === 'fulfilled' ? results[0].value : null;
+    const binancePrice = results[1].status === 'fulfilled' ? results[1].value : null;
+    const usdKrwRate = results[2].status === 'fulfilled' ? results[2].value : null;
+
+    console.log('API fetch results:', {
+      upbitPrice: upbitPrice || 'FAILED',
+      binancePrice: binancePrice || 'FAILED',
+      usdKrwRate: usdKrwRate || 'FAILED',
+    });
 
     if (!upbitPrice || !binancePrice || !usdKrwRate) {
       return NextResponse.json(
@@ -86,6 +94,7 @@ export async function GET() {
       {
         success: false,
         error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
