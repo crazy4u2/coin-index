@@ -1,0 +1,5 @@
+reviews:
+  # 모든 브랜치에서 자동 리뷰 활성화
+  auto_review:
+    enabled: true
+    drafts: false
