@@ -167,7 +167,7 @@ export default function MainDashboard() {
               <TableLoadingSpinner />
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {chartData.btcDominance.length > 0 ? (
                 <IndicatorChart
                   title="비트코인 도미넌스 (현재)"
