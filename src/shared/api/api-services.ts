@@ -76,10 +76,23 @@ export const fetchBitcoinDominance = async (): Promise<number | null> => {
   return data?.data?.market_cap_percentage?.btc ?? null;
 };
 
-// 비트코인 히스토리컬 도미넌스 데이터 - 실제 API에서만 가져오기
+// 비트코인 히스토리컬 도미넌스 데이터 - Supabase DB 우선, 외부 API 백업
 export const fetchBitcoinDominanceHistory = async (days: number = 365): Promise<{ timestamp: string; value: number }[] | null> => {
-  // CoinGecko 무료 API에서는 히스토리컬 도미넌스 데이터를 직접 제공하지 않음
-  // CoinMarketCap API 키가 있으면 실제 히스토리컬 도미넌스 데이터 사용 가능
+  try {
+    // 먼저 Supabase에서 히스토리컬 데이터 조회
+    const { getHistoricalData } = await import('@/entities/crypto-history/api');
+    const hours = days * 24; // 일수를 시간으로 변환
+    const historicalData = await getHistoricalData('btc_dominance', hours);
+    
+    if (historicalData && historicalData.length > 0) {
+      console.log(`📈 Using DB historical data for Bitcoin dominance (${historicalData.length} points)`);
+      return historicalData;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch Bitcoin dominance history from DB:', error);
+  }
+
+  // DB에 데이터가 없으면 외부 API 시도 (현재는 지원하지 않음)
   console.warn(`Bitcoin dominance historical data requires CoinMarketCap Pro API or similar service (requested ${days} days)`);
   return null;
 };
@@ -134,10 +147,23 @@ export const calculateKimchiPremium = async (): Promise<{
   };
 };
 
-// 김치 프리미엄 히스토리컬 데이터 (실제 구현을 위해서는 업비트와 바이낸스의 히스토리컬 API 필요)
+// 김치 프리미엄 히스토리컬 데이터 - Supabase DB 우선, 외부 API 백업
 export const fetchKimchiPremiumHistory = async (days: number = 365): Promise<{ timestamp: string; value: number }[] | null> => {
-  // 김치 프리미엄의 정확한 히스토리컬 데이터는 업비트와 바이낸스의 히스토리컬 API가 필요
-  // 현재는 제한된 데이터만 제공되므로 최근 30일 정도만 실제 데이터 사용 가능
+  try {
+    // 먼저 Supabase에서 히스토리컬 데이터 조회
+    const { getHistoricalData } = await import('@/entities/crypto-history/api');
+    const hours = days * 24; // 일수를 시간으로 변환
+    const historicalData = await getHistoricalData('kimchi_premium', hours);
+    
+    if (historicalData && historicalData.length > 0) {
+      console.log(`📈 Using DB historical data for Kimchi premium (${historicalData.length} points)`);
+      return historicalData;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch Kimchi premium history from DB:', error);
+  }
+
+  // DB에 데이터가 없으면 외부 API 시도 (현재는 지원하지 않음)
   console.warn(`Kimchi Premium historical data requires Upbit and Binance historical APIs (requested ${days} days)`);
   return null;
 };
@@ -159,10 +185,23 @@ export const fetchCurrentDollarIndex = async (): Promise<number | null> => {
   }
 };
 
-// 달러 인덱스 히스토리컬 데이터 (FRED API 키 필요)
+// 달러 인덱스 히스토리컬 데이터 - Supabase DB 우선, FRED API 백업
 export const fetchDollarIndexHistory = async (days: number = 365): Promise<{ timestamp: string; value: number }[] | null> => {
-  // FRED API 키가 있으면 실제 DXY 히스토리컬 데이터 사용 가능
-  // API 키 설정: https://fred.stlouisfed.org/docs/api/api_key.html
+  try {
+    // 먼저 Supabase에서 히스토리컬 데이터 조회
+    const { getHistoricalData } = await import('@/entities/crypto-history/api');
+    const hours = days * 24; // 일수를 시간으로 변환
+    const historicalData = await getHistoricalData('dollar_index', hours);
+    
+    if (historicalData && historicalData.length > 0) {
+      console.log(`📈 Using DB historical data for Dollar Index (${historicalData.length} points)`);
+      return historicalData;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch Dollar Index history from DB:', error);
+  }
+
+  // DB에 데이터가 없으면 FRED API 시도
   const FRED_API_KEY = process.env.NEXT_PUBLIC_FRED_API_KEY;
   
   if (!FRED_API_KEY) {

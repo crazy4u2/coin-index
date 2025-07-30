@@ -55,7 +55,7 @@ export const getLatestData = async (): Promise<HistoricalDataPoint | null> => {
       return null;
     }
 
-    return data?.[0] || null;
+    return (data?.[0] as unknown as HistoricalDataPoint) || null;
   } catch (error) {
     console.error('Error fetching latest data:', error);
     return null;
@@ -69,23 +69,46 @@ export const getHistoricalData = async (
 ): Promise<{ timestamp: string; value: number }[]> => {
   try {
     const supabase = getSupabaseClient();
+    
+    // 먼저 요청된 시간 범위의 데이터를 조회
     const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
     
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('crypto_hourly_data')
       .select(`created_at, ${indicator}`)
       .gte('created_at', hoursAgo)
       .not(indicator, 'is', null)
       .order('created_at', { ascending: true });
 
+    // 요청된 시간 범위에 데이터가 없으면, 최근 모든 데이터를 가져옴 (최대 100개)
+    if (!data || data.length === 0) {
+      console.log(`No data found for ${indicator} in last ${hours} hours, fetching recent data`);
+      const result = await supabase
+        .from('crypto_hourly_data')
+        .select(`created_at, ${indicator}`)
+        .not(indicator, 'is', null)
+        .order('created_at', { ascending: true })
+        .limit(100);
+      
+      data = result.data;
+      error = result.error;
+    }
+
     if (error) {
       console.error(`Historical ${indicator} data fetch error:`, error);
       return [];
     }
 
+    if (!data || data.length === 0) {
+      console.log(`No historical data found for ${indicator}`);
+      return [];
+    }
+
+    console.log(`📈 Found ${data.length} historical data points for ${indicator}`);
+    
     return data.map(item => ({
-      timestamp: item.created_at,
-      value: (item as any)[indicator]
+      timestamp: item.created_at as string,
+      value: item[indicator as keyof typeof item] as number
     }));
   } catch (error) {
     console.error(`Error fetching historical ${indicator} data:`, error);
@@ -120,7 +143,7 @@ export const getAllHistoricalData = async (
       return [];
     }
 
-    return data || [];
+    return (data as unknown as HistoricalDataPoint[]) || [];
   } catch (error) {
     console.error('Error fetching all historical data:', error);
     return [];
@@ -146,7 +169,7 @@ export const getDataStats = async (
       return null;
     }
 
-    const values = data.map(item => (item as any)[indicator]).filter(v => v !== null);
+    const values = data.map(item => item[indicator as keyof typeof item] as number).filter(v => v !== null);
     
     if (values.length === 0) return null;
 

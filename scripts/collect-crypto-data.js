@@ -11,7 +11,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY
 );
 
-import { fetchBitcoinDominance } from '../src/shared/api/api-services.js';
+// Bitcoin dominance 직접 구현 (모듈 import 이슈 해결)
+async function fetchBitcoinDominance() {
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/global');
+    const data = await response.json();
+    return data?.data?.market_cap_percentage?.btc || null;
+  } catch (error) {
+    console.error('Bitcoin dominance fetch failed:', error);
+    return null;
+  }
+}
 
 async function fetchUpbitBTCPrice() {
   try {
