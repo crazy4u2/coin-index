@@ -210,3 +210,54 @@
 - 차트 X축에서 중복 날짜 제거로 가독성 향상
 - 날짜별 트렌드 파악이 더 명확해짐
 - 모든 차트(비트코인 도미넌스, 김치 프리미엄, 달러 인덱스)에 동일한 개선 적용
+
+## 2025-08-03: Ondo Finance 투자지표 추가
+
+### 작업 내용 요약
+
+- **새로운 투자지표 추가**: Ondo Finance(ONDO) 코인 가격 정보를 대시보드에 추가
+- **API 통합**: CoinGecko API를 통한 ONDO 가격 데이터 실시간 조회
+- **Mock 데이터 지원**: API 호출 실패 시 대체 데이터 제공으로 안정성 확보
+
+### 주요 기술적 개선사항
+
+#### 1. ONDO Finance 데이터 서비스 구현
+
+- **파일**: `src/shared/api/api-services.ts`
+- **추가 기능**: `fetchOndoFinanceData()` 함수 구현
+  - CoinGecko API를 통한 ONDO 현재 가격 조회
+  - 24시간 변화율 정보 포함
+  - USD, KRW 가격 정보 모두 제공
+  - 에러 핸들링 및 null 반환으로 안정성 확보
+
+#### 2. Mock 데이터 생성기 추가
+
+- **파일**: `src/entities/crypto/mock-data.ts`
+- **추가 기능**: `generateOndoFinanceData()` 함수 구현
+  - 실제 ONDO 가격 범위($0.8-$1.5) 기반 랜덤 데이터 생성
+  - 24시간 변화율 시뮬레이션 (-10% ~ +10%)
+  - API 실패 시 대체 데이터로 서비스 연속성 보장
+
+### 데이터 구조
+
+```typescript
+interface OndoFinanceData {
+  price_usd: number;     // USD 가격
+  price_krw: number;     // KRW 가격 (환율 적용)
+  change_24h: number;    // 24시간 변화율
+  last_updated: string;  // 마지막 업데이트 시간
+}
+```
+
+### API 통합 방식
+
+- **실시간 데이터**: CoinGecko API `/simple/price` 엔드포인트 활용
+- **요청 파라미터**: `ids=ondo-finance&vs_currencies=usd,krw&include_24hr_change=true`
+- **에러 처리**: Promise.allSettled를 통한 부분 실패 허용
+- **백업 시스템**: Mock 데이터로 graceful degradation
+
+### 사용자 경험 개선
+
+- 새로운 투자지표 카드 추가로 대시보드 정보 확장
+- ONDO Finance 관련 투자 의사결정 지원
+- 일관된 UI/UX로 기존 지표들과 통합적 경험 제공
