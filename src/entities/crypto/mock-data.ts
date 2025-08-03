@@ -69,7 +69,8 @@ export const getCryptoPrices = (): CryptoPriceData[] => {
     { symbol: 'ETH', basePrice: 3340, baseCap: 402000000000, baseVolume: 18000000000 },
     { symbol: 'XRP', basePrice: 2.15, baseCap: 125000000000, baseVolume: 8500000000 },
     { symbol: 'ADA', basePrice: 0.87, baseCap: 31000000000, baseVolume: 1200000000 },
-    { symbol: 'SOL', basePrice: 185.5, baseCap: 89000000000, baseVolume: 3400000000 }
+    { symbol: 'SOL', basePrice: 185.5, baseCap: 89000000000, baseVolume: 3400000000 },
+    { symbol: 'ONDO', basePrice: 1.85, baseCap: 2800000000, baseVolume: 180000000 }
   ];
 
   return mockCoins.map(coin => {

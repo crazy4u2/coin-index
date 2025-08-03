@@ -261,7 +261,7 @@ export const fetchDollarIndexHistory = async (days: number = 365): Promise<{ tim
 // Binance 24시간 티커 데이터 조회
 export const fetchBinanceCryptoMarkets = async (): Promise<CoinGeckoMarketResponse[] | null> => {
   // 주요 암호화폐 심볼들 (USDT 페어)
-  const symbols = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'ADAUSDT', 'SOLUSDT'];
+  const symbols = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'ADAUSDT', 'SOLUSDT', 'ONDOUSDT'];
   
   try {
     const requests = symbols.map(symbol => 
@@ -286,7 +286,8 @@ export const fetchBinanceCryptoMarkets = async (): Promise<CoinGeckoMarketRespon
       'ETHUSDT': 'eth', 
       'XRPUSDT': 'xrp',
       'ADAUSDT': 'ada',
-      'SOLUSDT': 'sol'
+      'SOLUSDT': 'sol',
+      'ONDOUSDT': 'ondo'
     };
 
     return validResponses.map(ticker => ({
@@ -307,9 +308,9 @@ export const fetchBinanceCryptoMarkets = async (): Promise<CoinGeckoMarketRespon
 export const fetchCryptoMarketsLegacy = async (): Promise<CoinGeckoMarketResponse[] | null> => {
   const params = new URLSearchParams({
     vs_currency: 'usd',
-    ids: 'bitcoin,ethereum,ripple,cardano,solana',
+    ids: 'bitcoin,ethereum,ripple,cardano,solana,ondo',
     order: 'market_cap_desc',
-    per_page: '5',
+    per_page: '6',
     page: '1',
     sparkline: 'false',
     price_change_percentage: '24h'
