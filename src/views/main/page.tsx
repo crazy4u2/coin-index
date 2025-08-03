@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle, Map } from 'lucide-react';
+import Link from 'next/link';
 import { IndicatorTable, IndicatorChart } from '@/widgets/crypto-dashboard';
 import { QueryErrorBoundary, LoadingSpinner, TableLoadingSpinner, ChartLoadingSpinner } from '@/shared/ui';
 import { useDashboardData } from '@/features/dashboard';
@@ -82,6 +83,15 @@ export default function MainDashboard() {
                   실시간 비트코인 도미넌스, 김치 프리미엄, 달러 인덱스 모니터링
                 </p>
               </div>
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/roadmap"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Map className="w-4 h-4 mr-2" />
+                  로드맵
+                </Link>
+              </div>
             </div>
           </div>
         </header>
@@ -139,6 +149,13 @@ export default function MainDashboard() {
                     마지막 업데이트: {lastUpdated.toLocaleTimeString('ko-KR')}
                   </span>
                 )}
+                <Link
+                  href="/roadmap"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Map className="w-4 h-4 mr-2" />
+                  로드맵
+                </Link>
                 <button
                   onClick={refetch}
                   disabled={loading}
