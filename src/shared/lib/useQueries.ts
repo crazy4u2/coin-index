@@ -39,7 +39,7 @@ export const useDollarIndex = () => {
     queryKey: queryKeys.dollarIndex,
     queryFn: getDollarIndex,
     staleTime: 1000 * 60 * 2, // 2분
-    refetchInterval: 1000 * 60 * 3, // 3분마다 자동 갱신 (Mock 데이터)
+    refetchInterval: 1000 * 60 * 3, // 3분마다 자동 갱신
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -50,7 +50,7 @@ export const useCryptoPrices = () => {
     queryKey: queryKeys.cryptoPrices,
     queryFn: getCryptoPrices,
     staleTime: 1000 * 10, // 10초
-    refetchInterval: 1000 * 15, // 15초마다 자동 갱신 (Binance 우선)
+    refetchInterval: 1000 * 60, // 1분마다 자동 갱신 (CoinGecko)
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -96,8 +96,8 @@ export const useDashboardData = () => {
       {
         queryKey: queryKeys.cryptoPrices,
         queryFn: getCryptoPrices,
-        staleTime: 1000 * 10,
-        refetchInterval: 1000 * 15,
+        staleTime: 1000 * 30,
+        refetchInterval: 1000 * 60,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       },
