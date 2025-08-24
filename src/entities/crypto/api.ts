@@ -8,7 +8,6 @@ import {
   fetchDollarIndexHistory,
   fetchCryptoMarkets
 } from '@/shared/api/api-services';
-import { MockDataGenerator } from './mock-data';
 import { getLatestData, isDataFresh } from '@/entities/crypto-history/api';
 
 // 이전 값들을 저장하기 위한 간단한 캐시 (함수형)
@@ -78,9 +77,8 @@ export const getBitcoinDominance = async (): Promise<BitcoinDominance> => {
     };
   }
 
-  // 3. 모든 방법이 실패하면 Mock 데이터 반환
-  console.warn('Using mock data for Bitcoin dominance');
-  return MockDataGenerator.getBitcoinDominance();
+  // 3. 모든 API가 실패하면 에러 발생
+  throw new Error('Failed to fetch Bitcoin dominance: All data sources unavailable');
 };
 
 // 김치 프리미엄 계산 (DB 우선, 실시간 API 백업)
@@ -139,9 +137,8 @@ export const getKimchiPremium = async (): Promise<KimchiPremium> => {
     };
   }
 
-  // 3. 모든 방법이 실패하면 Mock 데이터 반환
-  console.warn('Using mock data for Kimchi premium');
-  return MockDataGenerator.getKimchiPremium();
+  // 3. 모든 API가 실패하면 에러 발생
+  throw new Error('Failed to fetch Kimchi premium: All data sources unavailable');
 };
 
 // 달러 인덱스 (DB 우선, 실시간 API 백업)
@@ -195,9 +192,8 @@ export const getDollarIndex = async (): Promise<DollarIndex> => {
     };
   }
 
-  // 3. 모든 방법이 실패하면 Mock 데이터 반환
-  console.warn('Using mock data for Dollar Index - all APIs failed');
-  return MockDataGenerator.getDollarIndex();
+  // 3. 모든 API가 실패하면 에러 발생
+  throw new Error('Failed to fetch Dollar Index: All data sources unavailable');
 };
 
 // 주요 암호화폐 가격 정보
@@ -213,13 +209,14 @@ export const getCryptoPrices = async (): Promise<CryptoPriceData[]> => {
       changePercent24h: coin.price_change_percentage_24h || 0,
       volume24h: coin.total_volume || 0,
       marketCap: coin.market_cap || 0,
+      allTimeHigh: coin.ath || coin.current_price * 1.3,
+      athDate: coin.ath_date ? new Date(coin.ath_date) : new Date(),
       lastUpdated: new Date()
     }));
   }
 
-  // API 실패 시 Mock 데이터 반환
-  console.warn('Using mock data for crypto prices');
-  return MockDataGenerator.getCryptoPrices();
+  // API 실패 시 에러 발생
+  throw new Error('Failed to fetch crypto prices: All data sources unavailable');
 };
 
 // 전체 대시보드 데이터
@@ -232,29 +229,31 @@ export const getDashboardData = async (): Promise<DashboardData> => {
       getCryptoPrices()
     ]);
 
-    return {
-      bitcoinDominance: bitcoinDominance.status === 'fulfilled' 
-        ? bitcoinDominance.value 
-        : MockDataGenerator.getBitcoinDominance(),
-      kimchiPremium: kimchiPremium.status === 'fulfilled' 
-        ? kimchiPremium.value 
-        : MockDataGenerator.getKimchiPremium(),
-      dollarIndex: dollarIndex.status === 'fulfilled' 
-        ? dollarIndex.value 
-        : MockDataGenerator.getDollarIndex(),
-      cryptoPrices: cryptoPrices.status === 'fulfilled' 
-        ? cryptoPrices.value 
-        : MockDataGenerator.getCryptoPrices()
-    };
+    // API 실패 시 해당 데이터를 null로 설정하여 에러 상태를 명확히 표시
+    const result: Partial<DashboardData> = {};
+    
+    if (bitcoinDominance.status === 'fulfilled') {
+      result.bitcoinDominance = bitcoinDominance.value;
+    }
+    if (kimchiPremium.status === 'fulfilled') {
+      result.kimchiPremium = kimchiPremium.value;
+    }
+    if (dollarIndex.status === 'fulfilled') {
+      result.dollarIndex = dollarIndex.value;
+    }
+    if (cryptoPrices.status === 'fulfilled') {
+      result.cryptoPrices = cryptoPrices.value;
+    }
+    
+    // 일부 데이터라도 성공했다면 반환, 모두 실패했다면 에러
+    if (Object.keys(result).length === 0) {
+      throw new Error('Failed to fetch any dashboard data: All APIs failed');
+    }
+    
+    return result as DashboardData;
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
-    // 전체 실패 시 완전한 Mock 데이터 세트 반환
-    return {
-      bitcoinDominance: MockDataGenerator.getBitcoinDominance(),
-      kimchiPremium: MockDataGenerator.getKimchiPremium(),
-      dollarIndex: MockDataGenerator.getDollarIndex(),
-      cryptoPrices: MockDataGenerator.getCryptoPrices()
-    };
+    throw error;
   }
 };
 

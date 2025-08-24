@@ -33,6 +33,8 @@ export interface CryptoPriceData {
   changePercent24h: number;
   volume24h: number;
   marketCap: number;
+  allTimeHigh: number;
+  athDate: Date;
   lastUpdated: Date;
 }
 
